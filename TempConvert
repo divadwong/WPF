@@ -1,0 +1,81 @@
+# Convert Temperature from Celsius or Fahrenheit
+Add-Type -AssemblyName PresentationFramework
+
+[xml]$Form = @"
+<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		WindowStartupLocation="Manual" Left="800" Top="400"
+		ResizeMode="CanMinimize"
+        Title="Temperature Converter" Height="185" Width="300">
+    <Grid>
+        <Label Content="Enter a Temperature" HorizontalAlignment="Left" Height="50" Margin="10,21,0,0" VerticalAlignment="Top" Width="129" FontFamily="Comic Sans MS"/>
+        <TextBox Name="Temp" HorizontalAlignment="Left" Height="26" Margin="30,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="66" RenderTransformOrigin="0.931,0.433">
+            <TextBox.Effect>
+                <DropShadowEffect/>
+            </TextBox.Effect>
+        </TextBox>
+        <Label Content="v1.0   07-09-2022" HorizontalAlignment="Left" Height="25" Margin="10,117,0,0" VerticalAlignment="Top" Width="100" FontFamily="Arial Black" FontSize="8" RenderTransformOrigin="0.51,1.581"/>
+        <Button Name="ConvertC" Content="Convert to Celsius" HorizontalAlignment="Left" Height="28" Margin="160,28,0,0" VerticalAlignment="Top" Width="110" FontFamily="Calibri">
+            <Button.Effect>
+                <DropShadowEffect/>
+            </Button.Effect>
+        </Button>
+        <Button Name="ConvertF" Content="Convert to Fahrenheit" HorizontalAlignment="Left" Height="28" Margin="160,84,0,0" VerticalAlignment="Top" Width="110" FontFamily="Calibri" FontSize="10">
+            <Button.Effect>
+                <DropShadowEffect/>
+            </Button.Effect>
+        </Button>
+
+    </Grid>
+</Window>
+"@
+
+$NR=(New-Object System.xml.XmlNodeReader $Form)
+$Win=[Windows.Markup.XamlReader]::Load($NR)
+
+$Temp = $win.FindName("Temp")
+$ConvertC = $win.FindName("ConvertC")
+$ConvertF = $win.FindName("ConvertF")
+
+$temp.Focus()
+
+$ConvertC.IsEnabled = $False
+$ConvertF.IsEnabled = $False
+
+$ConvertC.Add_Click({
+    if([decimal]$temp.text -lt -999999 -or [decimal]$temp.text -gt 999999)
+    {[System.Windows.MessageBox]::Show("Please enter number between -999999 and 999999","Out of Range")}
+    else
+    {
+        [decimal]$Temp.Text = "{0:n1}" -f (($temp.text - 32) / 1.8)
+    }
+})
+
+$ConvertF.Add_Click({
+    if([decimal]$temp.text -lt -999999 -or [decimal]$temp.text -gt 999999)
+    {[System.Windows.MessageBox]::Show("Please enter number between -999999 and 999999","Out of Range")}
+    else
+    {
+        [decimal]$Temp.Text = "{0:n1}" -f ($temp.text / .55555 + 32)
+    }
+})
+
+$Temp.AddHandler(
+    [System.Windows.Controls.Primitives.TextBoxBase]::TextChangedEvent, 
+    [System.Windows.RoutedEventHandler]{ 
+    if($Temp.Text -match "^[-\d\.]+$")
+    {
+        $ConvertC.IsEnabled = $True
+        $ConvertF.IsEnabled = $True
+    }else
+    {
+        $ConvertC.IsEnabled = $False
+        $ConvertF.IsEnabled = $False
+    }
+})
+
+$Temp.Add_GotFocus({
+    $Temp.Clear()
+})
+
+$Win.Showdialog()
